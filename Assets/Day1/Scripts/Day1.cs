@@ -1,9 +1,10 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
-public class ElfCalories
+public class ElfCalories : IComparable
 {
     private List<int> m_AllCalories = new List<int>();
     
@@ -35,12 +36,21 @@ public class ElfCalories
         Debug.Log(log);
         return log;
     }
+
+    public int CompareTo(object obj)
+    {
+        ElfCalories other = obj as ElfCalories;
+
+        return TotalCalories.CompareTo(other.TotalCalories);
+    }
 }
 
 public class Day1 : MonoBehaviour
 {
     [SerializeField] private TextAsset m_Input;
 
+    [SerializeField] private int m_NumberOfTopElfs = 3;
+    
     private void Start()
     {
         Debug.Assert(m_Input != null, $"Input null {nameof(m_Input)} in {name}");
@@ -50,17 +60,11 @@ public class Day1 : MonoBehaviour
         List<ElfCalories> caloriePerElfGroup = new List<ElfCalories>();
 
         ElfCalories currentElf = new ElfCalories(0);
-
-        int maxCaloriesCarried = -1;
         
         foreach (string line in inputLines)
         {
             if (string.IsNullOrEmpty(line))
             {
-                if (currentElf.TotalCalories > maxCaloriesCarried)
-                {
-                    maxCaloriesCarried = currentElf.TotalCalories;
-                }
                 currentElf.ToString();
                 caloriePerElfGroup.Add(currentElf);
                 currentElf = new ElfCalories(currentElf.ElfID + 1);
@@ -69,7 +73,17 @@ public class Day1 : MonoBehaviour
             
             currentElf.AddCalories(int.Parse(line));
         }
+
+        caloriePerElfGroup.Sort();
+        caloriePerElfGroup.Reverse();
+
+        int topCalories = 0;
         
-        Debug.LogWarning($"Max calories carried -> {maxCaloriesCarried}");
+        for (int i = 0; i < m_NumberOfTopElfs; i++)
+        {
+            topCalories += caloriePerElfGroup[i].TotalCalories;
+        }
+        
+        Debug.LogWarning($"Max calories carried -> {topCalories}");
     }
 }
