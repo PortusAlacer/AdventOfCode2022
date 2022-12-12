@@ -5,6 +5,7 @@ using UnityEngine;
 public static class StringOperations
 {
     private static string delimitator = "\n";
+    private static string space = " ";
     
     public static List<string> ReadFileLines(TextAsset file)
     {
@@ -13,5 +14,10 @@ public static class StringOperations
         Debug.Log($"Number of words loaded: {result.Count}");
 
         return result;
+    }
+
+    public static string[] SplitSpaces(string input)
+    {
+        return input.Split(space);
     }
 }
