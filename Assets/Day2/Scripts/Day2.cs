@@ -58,6 +58,51 @@ public abstract class Shape : IComparable
                 return null;
         }
     }
+
+    public Shape OtherWin()
+    {
+        switch (Type)
+        {
+            case ShapeType.Paper:
+                return new Scissors();
+            case ShapeType.Rock:
+                return new Paper();
+            case ShapeType.Scissors:
+                return new Rock();
+            default:
+                return null;
+        }
+    }
+    
+    public Shape OtherLoose()
+    {
+        switch (Type)
+        {
+            case ShapeType.Paper:
+                return new Rock();
+            case ShapeType.Rock:
+                return new Scissors();
+            case ShapeType.Scissors:
+                return new Paper();
+            default:
+                return null;
+        }
+    }
+    
+    public Shape Draw()
+    {
+        switch (Type)
+        {
+            case ShapeType.Paper:
+                return new Paper();
+            case ShapeType.Rock:
+                return new Rock();
+            case ShapeType.Scissors:
+                return new Scissors();
+            default:
+                return null;
+        }
+    }
 }
 
 public class Rock : Shape
@@ -86,17 +131,21 @@ public class Scissors : Shape
 
 public class Game
 {
+    public enum OutcomeType
+    {
+        Win,
+        Lost,
+        Draw
+    }
+    
     private Shape m_Other;
     private Shape m_Me;
 
     public int WinPoints { private set; get; }
     public int ShapePoints { private set; get; }
-    
-    public Game(string other, string me)
-    {
-        m_Other = Shape.ShapeFactory(other);
-        m_Me = Shape.ShapeFactory(me);
 
+    private void CalculatePoints()
+    {
         ShapePoints = (int) m_Me.Type;
 
         int result = m_Me.CompareTo(m_Other);
@@ -114,6 +163,37 @@ public class Game
             WinPoints = 0;
         }
     }
+    
+    public Game(string other, string me)
+    {
+        m_Other = Shape.ShapeFactory(other);
+        m_Me = Shape.ShapeFactory(me);
+
+        CalculatePoints();
+    }
+
+    public Game(string other, OutcomeType outcome)
+    {
+        m_Other = Shape.ShapeFactory(other);
+
+        switch (outcome)
+        {
+            case OutcomeType.Draw:
+                m_Me = m_Other.Draw();
+                break;
+            case OutcomeType.Lost:
+                m_Me = m_Other.OtherLoose();
+                break;
+            case OutcomeType.Win:
+                m_Me = m_Other.OtherWin();
+                break;
+            default:
+                m_Me = null;
+                break;
+        }
+        
+        CalculatePoints();
+    }
 }
 
 public class Day2 : MonoBehaviour
@@ -127,21 +207,44 @@ public class Day2 : MonoBehaviour
         List<string> inputLines = StringOperations.ReadFileLines(m_Input);
 
         int totalPoints = 0;
-
+        int totalPointsSecond = 0;
+        
         foreach (string inputLine in inputLines)
         {
             if (string.IsNullOrEmpty(inputLine))
             {
                 continue;
             }
+            
             string[] gameString = StringOperations.SplitSpaces(inputLine);
-
+            
             Game game = new Game(gameString[0], gameString[1]);
-
             totalPoints += game.ShapePoints + game.WinPoints;
+
+            Game.OutcomeType outcome;
+
+            switch (gameString[1])
+            {
+                case "X":
+                    outcome = Game.OutcomeType.Lost;
+                    break;
+                case "Y":
+                    outcome = Game.OutcomeType.Draw;
+                    break;
+                case "Z":
+                    outcome = Game.OutcomeType.Win;
+                    break;
+                default:
+                    outcome = Game.OutcomeType.Draw;
+                    break;
+            }
+            
+            Game game2 = new Game(gameString[0], outcome);
+            totalPointsSecond += game2.ShapePoints + game2.WinPoints;
         }
         
         Debug.LogWarning($"Total Points -> {totalPoints}");
+        Debug.LogWarning($"Total Points 2 -> {totalPointsSecond}");
     }
 
 
